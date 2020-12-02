@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
@@ -39,35 +40,26 @@ public class Client {
 
     private Logger logger = LoggerFactory.getLogger(Client.class);
 
-    private GatewayDiscordClient client;
-
-    @PostConstruct
-    public void init() {
-        client = buildClient();
+    public Mono<Message> sendFile(Path path) {
+        logger.debug("send file {}", path);
+        return getTextChannel()
+                .flatMap(channel -> channel.createMessage(a -> createFileMessage(path, a)));
     }
 
-    public Message sendFile(Path path) {
-        TextChannel channel = getTextChannel();
-
-        return channel.createMessage(a -> createFileMessage(path, a)).block();
-
+    public Mono<Void> addEmoji(Message message, String emoji){
+        return message.addReaction(ReactionEmoji.unicode(emoji));
     }
 
-    public void addEmoji(Message message, String emoji){
-        message.addReaction(ReactionEmoji.unicode(emoji)).block();
-    }
-
-    public void sendText(String message) {
+    public Mono<Message> sendText(String message) {
         logger.debug("send message {}", message);
-        TextChannel channel = getTextChannel();
-        channel.createMessage(message).block();
+        return getTextChannel()
+                .flatMap(channel -> channel.createMessage(message));
     }
 
-    private TextChannel getTextChannel() {
-        return client
-                .getChannelById(Snowflake.of(channelId))
-                .cast(TextChannel.class)
-                .block();
+    private Mono<TextChannel> getTextChannel() {
+        return buildClient()
+                .flatMap(client -> client.getChannelById(Snowflake.of(channelId)))
+                .map(TextChannel.class::cast);
     }
 
     private void createFileMessage(Path path, MessageCreateSpec a) {
@@ -82,9 +74,9 @@ public class Client {
     }
 
 
-    private GatewayDiscordClient buildClient() {
+    private Mono<GatewayDiscordClient> buildClient() {
         DiscordClient clientBuilder = DiscordClient.create(clientToken);
-        return clientBuilder.login().block();
+        return clientBuilder.login();
     }
 }
 

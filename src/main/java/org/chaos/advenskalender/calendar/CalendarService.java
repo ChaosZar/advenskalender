@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
 
 import javax.annotation.PostConstruct;
 import java.time.LocalDateTime;
@@ -51,14 +52,27 @@ public class CalendarService {
     }
 
     private void sendPage(Page page) {
-        Message message = client.sendFile(page.getPath());
-        if(page.isLastPage()){
-            client.addEmoji(message, Client.EMOJI_A);
-            client.addEmoji(message, Client.EMOJI_B);
-            client.addEmoji(message, Client.EMOJI_C);
-            client.addEmoji(message, Client.EMOJI_D);
-            client.addEmoji(message, Client.EMOJI_UNKNOWING);
-        }
+        client.sendFile(page.getPath())
+                .doOnNext(message -> logger.debug("file {} was successfully sent", page.getPath()))
+                .filter(message -> page.isLastPage())
+                .flatMapMany(this::createEmojis)
+                .subscribe(
+                        response -> logger.debug("emoji was sent"),
+                        error -> {
+                            logger.error("file {} resulted in an error", page.getPath());
+                            error.printStackTrace();
+                        }
+                );
+    }
+
+    private Flux<Void> createEmojis(Message message) {
+        return Flux.concat(
+                client.addEmoji(message, Client.EMOJI_A),
+                client.addEmoji(message, Client.EMOJI_B),
+                client.addEmoji(message, Client.EMOJI_C),
+                client.addEmoji(message, Client.EMOJI_D),
+                client.addEmoji(message, Client.EMOJI_UNKNOWING)
+        );
     }
 
     private boolean isNighttime() {
