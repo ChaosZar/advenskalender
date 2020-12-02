@@ -1,9 +1,11 @@
 package org.chaos.advenskalender.calendar;
 
+import discord4j.core.object.entity.Message;
 import org.chaos.advenskalender.discord.Client;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -17,7 +19,8 @@ import java.util.stream.Collectors;
 @Service
 public class CalendarService {
 
-    private static final String FILES_ROOT = "<PATH TO FILES GOES HERE>";
+    @Value("${calendar.files.root}")
+    private String filesRoot;
     private Book book;
     Logger logger = LoggerFactory.getLogger(CalendarService.class);
 
@@ -26,14 +29,14 @@ public class CalendarService {
 
     @PostConstruct
     public void postConstruct() {
-        book = Book.build(FILES_ROOT);
+        book = Book.build(filesRoot);
     }
 
     @Scheduled(cron = "0 0 * * * *")
     public void postPages() {
         logger.info("cron job triggered.");
-        LocalDateTime now = LocalDateTime.now();
-        if (now.getHour() > 20 || now.getHour() < 10) {
+
+        if (isNighttime()) {
             logger.info("nighttime detected. job skipped.");
             return;
         }
@@ -42,10 +45,25 @@ public class CalendarService {
         logger.info("Following Days will be send: {}", daysToPost);
         daysToPost.stream()
                 .flatMap(s -> s.getPages().stream())
-                .sorted(Comparator.comparing(Page::getPath))
-                .forEachOrdered(p -> client.sendFile(p.getPath()));
+                .forEachOrdered(this::sendPage);
 
         book.deleteDays(daysToPost);
+    }
+
+    private void sendPage(Page page) {
+        Message message = client.sendFile(page.getPath());
+        if(page.isLastPage()){
+            client.addEmoji(message, Client.EMOJI_A);
+            client.addEmoji(message, Client.EMOJI_B);
+            client.addEmoji(message, Client.EMOJI_C);
+            client.addEmoji(message, Client.EMOJI_D);
+            client.addEmoji(message, Client.EMOJI_UNKNOWING);
+        }
+    }
+
+    private boolean isNighttime() {
+        LocalDateTime now = LocalDateTime.now();
+        return now.getHour() > 20 || now.getHour() < 10;
     }
 
     private List<Day> getDaysToPost() {

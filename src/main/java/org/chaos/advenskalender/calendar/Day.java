@@ -3,14 +3,13 @@ package org.chaos.advenskalender.calendar;
 import lombok.Data;
 
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.TreeSet;
 
 @Data
 public class Day {
 
     private final int dayOfMonth;
-    private final List<Page> pages = new ArrayList<>();
+    private final TreeSet<Page> pages = new TreeSet<>();
 
 
     public Day(int dayOfMonth) {
@@ -19,5 +18,9 @@ public class Day {
 
     public void add(Path page) {
         pages.add(new Page(page));
+    }
+
+    public void determineLastPage() {
+        pages.last().setLastPage();
     }
 }

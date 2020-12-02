@@ -48,7 +48,13 @@ public class Book {
             e.printStackTrace();
         }
 
+        result.onLoadingFinished();
+
         return result;
+    }
+
+    private void onLoadingFinished() {
+        days.stream().forEach(d -> d.determineLastPage());
     }
 
     private void addPage(Integer day, Path page) {
