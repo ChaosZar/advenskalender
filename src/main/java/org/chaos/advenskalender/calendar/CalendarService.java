@@ -48,6 +48,7 @@ public class CalendarService {
                 .flatMap(s -> s.getPages().stream())
                 .forEachOrdered(this::sendPage);
 
+        // TODO: This call has to be execued after all pages were sent. Currently there is a race condition.
         book.deleteDays(daysToPost);
     }
 
@@ -62,7 +63,7 @@ public class CalendarService {
                             logger.error("file {} resulted in an error", page.getPath());
                             error.printStackTrace();
                         }
-                );
+                )
     }
 
     private Flux<Void> createEmojis(Message message) {
