@@ -44,26 +44,22 @@ public class CalendarService {
 
         List<Day> daysToPost = getDaysToPost();
         logger.info("Following Days will be send: {}", daysToPost);
-        daysToPost.stream()
+        Flux.fromIterable(daysToPost.stream()
                 .flatMap(s -> s.getPages().stream())
-                .forEachOrdered(this::sendPage);
-
-        // TODO: This call has to be execued after all pages were sent. Currently there is a race condition.
-        book.deleteDays(daysToPost);
-    }
-
-    private void sendPage(Page page) {
-        client.sendFile(page.getPath())
-                .doOnNext(message -> logger.debug("file {} was successfully sent", page.getPath()))
-                .filter(message -> page.isLastPage())
-                .flatMapMany(this::createEmojis)
+                .collect(Collectors.toList()))
+                .flatMap(this::sendPage)
+                .doOnComplete(() -> book.deleteDays(daysToPost))
                 .subscribe(
                         response -> logger.debug("emoji was sent"),
-                        error -> {
-                            logger.error("file {} resulted in an error", page.getPath());
-                            error.printStackTrace();
-                        }
-                )
+                        error -> logger.error("error sending page", error)
+                );
+    }
+
+    private Flux<Void> sendPage(Page page) {
+        return client.sendFile(page.getPath())
+                .doOnNext(message -> logger.debug("file {} was successfully sent", page.getPath()))
+                .filter(message -> page.isLastPage())
+                .flatMapMany(this::createEmojis);
     }
 
     private Flux<Void> createEmojis(Message message) {
