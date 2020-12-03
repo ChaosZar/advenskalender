@@ -8,8 +8,7 @@ import discord4j.core.object.entity.channel.TextChannel;
 import discord4j.core.object.reaction.ReactionEmoji;
 import discord4j.core.spec.MessageCreateSpec;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
@@ -21,6 +20,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 
+@Slf4j
 @Service
 @Scope(scopeName = ConfigurableBeanFactory.SCOPE_SINGLETON)
 @RequiredArgsConstructor
@@ -32,18 +32,16 @@ public class Client {
     public static final String EMOJI_D = "\uD83C\uDDE9";
     public static final String EMOJI_UNKNOWING = "\uD83E\uDD37";
 
-    private Logger logger = LoggerFactory.getLogger(Client.class);
-
     private final DiscordProperties discordProperties;
     private final DiscordClient clientBuilder;
 
     public Mono<Message> sendFile(GatewayDiscordClient discordClient, Path path) {
-        logger.info("send file {}", path);
+        log.info("send file {}", path);
         return getTextChannel(discordClient)
                 .flatMap(channel -> channel.createMessage(a -> createFileMessage(path, a)));
     }
 
-    public Mono<Void> addEmoji(Message message, String emoji){
+    public Mono<Void> addEmoji(Message message, String emoji) {
         return message.addReaction(ReactionEmoji.unicode(emoji));
     }
 
@@ -54,12 +52,12 @@ public class Client {
 
     private void createFileMessage(Path path, MessageCreateSpec a) {
         try {
-            logger.info("send file {}", path);
+            log.info("send file {}", path);
             InputStream fileInputStream = Files.newInputStream(path);
             String fileName = path.getFileName().toString();
             a.addFile(fileName, fileInputStream);
         } catch (IOException e) {
-            logger.error("failed to send File Message.", e);
+            log.error("failed to send File Message.", e);
         }
     }
 
