@@ -33,14 +33,9 @@ public class CalendarService {
         this.book = Book.build(filesRoot);
     }
 
-    @Scheduled(cron = "0 0 * * * *")
+    @Scheduled(cron = "0 0 10-20 * * *")
     public void postPagesScheduled() {
         logger.info("cron job triggered.");
-
-        if (isNighttime()) {
-            logger.info("nighttime detected. job skipped.");
-            return;
-        }
 
         postPages()
                 .subscribe(
@@ -79,11 +74,6 @@ public class CalendarService {
                 client.addEmoji(message, Client.EMOJI_D).then(Mono.just("D")),
                 client.addEmoji(message, Client.EMOJI_UNKNOWING).then(Mono.just("UNKNOWING"))
         );
-    }
-
-    private boolean isNighttime() {
-        LocalDateTime now = LocalDateTime.now();
-        return now.getHour() > 20 || now.getHour() < 10;
     }
 
     private List<Day> getDaysToPost() {
