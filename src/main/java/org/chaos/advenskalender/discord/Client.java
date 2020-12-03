@@ -7,15 +7,14 @@ import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.channel.TextChannel;
 import discord4j.core.object.reaction.ReactionEmoji;
 import discord4j.core.spec.MessageCreateSpec;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
-import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -24,6 +23,7 @@ import java.nio.file.Path;
 
 @Service
 @Scope(scopeName = ConfigurableBeanFactory.SCOPE_SINGLETON)
+@RequiredArgsConstructor
 public class Client {
 
     public static final String EMOJI_A = "\uD83C\uDDE6";
@@ -32,34 +32,23 @@ public class Client {
     public static final String EMOJI_D = "\uD83C\uDDE9";
     public static final String EMOJI_UNKNOWING = "\uD83E\uDD37";
 
-    @Value("${discord.channel.id}")
-    private String channelId;
-
-    @Value("${discord.client.token}")
-    private String clientToken;
-
     private Logger logger = LoggerFactory.getLogger(Client.class);
+
+    private final DiscordProperties discordProperties;
+    private final DiscordClient clientBuilder;
 
     public Mono<Message> sendFile(GatewayDiscordClient discordClient, Path path) {
         logger.info("send file {}", path);
         return getTextChannel(discordClient)
-                .doOnError(Throwable::printStackTrace)
-                .flatMap(channel -> channel.createMessage(a -> createFileMessage(path, a)))
-                .doOnError(Throwable::printStackTrace);
+                .flatMap(channel -> channel.createMessage(a -> createFileMessage(path, a)));
     }
 
     public Mono<Void> addEmoji(Message message, String emoji){
         return message.addReaction(ReactionEmoji.unicode(emoji));
     }
-/*
-    public Mono<Message> sendText(String message) {
-        logger.info("send message {}", message);
-        return getTextChannel()
-                .flatMap(channel -> channel.createMessage(message));
-    }
-*/
+
     private Mono<TextChannel> getTextChannel(GatewayDiscordClient discordClient) {
-        return discordClient.getChannelById(Snowflake.of(channelId))
+        return discordClient.getChannelById(Snowflake.of(discordProperties.getChannelId()))
                 .map(TextChannel.class::cast);
     }
 
@@ -75,8 +64,7 @@ public class Client {
     }
 
 
-    public Mono<GatewayDiscordClient> buildClient() {
-        DiscordClient clientBuilder = DiscordClient.create(clientToken);
+    public Mono<GatewayDiscordClient> buildGatewayDiscordClient() {
         return clientBuilder.login();
     }
 }
