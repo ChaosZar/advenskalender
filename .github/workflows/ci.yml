@@ -9,4 +9,4 @@ jobs:
         with:
           java-version: 11
       - name: build
-        run: ./gradlew build
+        run: mvn verify
