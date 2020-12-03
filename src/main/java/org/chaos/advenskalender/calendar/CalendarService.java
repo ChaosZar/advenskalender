@@ -7,13 +7,12 @@ import lombok.RequiredArgsConstructor;
 import org.chaos.advenskalender.discord.Client;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.net.URI;
+import javax.annotation.PostConstruct;
 import java.time.LocalDateTime;
 import java.time.Month;
 import java.util.Comparator;
@@ -21,16 +20,18 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class CalendarService {
 
     Logger logger = LoggerFactory.getLogger(CalendarService.class);
 
     private final Client client;
-    private final Book book;
+    private final CalendarProperties calendarProperties;
+    private Book book;
 
-    CalendarService(final Client client, @Value("${calendar.files.root}") URI filesRoot) {
-        this.client = client;
-        this.book = Book.build(filesRoot);
+    @PostConstruct
+    public void init() {
+        book = Book.build(calendarProperties.getFilesRoot());
     }
 
     @Scheduled(cron = "0 0 * * * *")
@@ -53,7 +54,7 @@ public class CalendarService {
     public Flux<String> postPages() {
         List<Day> daysToPost = getDaysToPost();
         logger.info("Following Days will be send: {}", daysToPost);
-        return client.buildClient()
+        return client.buildGatewayDiscordClient()
                 .flatMapIterable(discordClient -> daysToPost.stream()
                         .flatMap(s -> s.getPages().stream())
                         .map(p -> new ClientPagePair(discordClient, p))
