@@ -6,6 +6,7 @@ import java.nio.file.Path;
 
 @Data
 public class Page implements Comparable<Page> {
+
     private final Path path;
     private boolean lastPage = false;
 
