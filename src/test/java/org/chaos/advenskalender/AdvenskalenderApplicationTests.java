@@ -11,7 +11,6 @@ import org.chaos.advenskalender.calendar.CalendarService;
 import org.chaos.advenskalender.discord.Client;
 import org.chaos.advenskalender.discord.DiscordProperties;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
@@ -34,7 +33,7 @@ class AdvenskalenderApplicationTests {
     private CalendarService calendarService;
 
     @Test
-    void contextLoads() throws Exception {
+    void contextLoads() {
         StepVerifier.create(calendarService.postPages())
                 .expectNext("A")
                 .expectNext("B")
