@@ -11,7 +11,6 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.net.URI;
-import java.net.URL;
 import java.time.LocalDateTime;
 import java.time.Month;
 import java.util.Comparator;
@@ -40,17 +39,19 @@ public class CalendarService {
             return;
         }
 
-        List<Day> daysToPost = getDaysToPost();
+        getFluxes().subscribe(
+                emoji -> logger.debug("emoji {} was sent", emoji),
+                error -> logger.error("error sending page", error)
+        );
+    }
+
+    Flux<String> getFluxes() {List<Day> daysToPost = getDaysToPost();
         logger.info("Following Days will be send: {}", daysToPost);
-        Flux.fromIterable(daysToPost.stream()
+        return Flux.fromIterable(daysToPost.stream()
                 .flatMap(s -> s.getPages().stream())
                 .collect(Collectors.toList()))
                 .flatMap(this::sendPage)
-                .doOnComplete(() -> book.deleteDays(daysToPost))
-                .subscribe(
-                        emoji -> logger.debug("emoji {} was sent", emoji),
-                        error -> logger.error("error sending page", error)
-                );
+                .doOnComplete(() -> book.deleteDays(daysToPost));
     }
 
     private Flux<String> sendPage(Page page) {

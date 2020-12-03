@@ -8,6 +8,7 @@ import org.chaos.advenskalender.discord.Client;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
 import java.nio.file.Path;
 
@@ -34,9 +35,20 @@ class CalendarServiceTest {
         when(client.addEmoji(message, Client.EMOJI_UNKNOWING)).thenReturn(Mono.just("s").then());
 
         var calendarService = new CalendarService(client, getClass().getResource("root").toURI());
-        calendarService.postPages();
 
-
+        StepVerifier.create(calendarService.getFluxes())
+                .expectNext("A")
+                .expectNext("B")
+                .expectNext("C")
+                .expectNext("D")
+                .expectNext("UNKNOWING")
+                .expectNext("A")
+                .expectNext("B")
+                .expectNext("C")
+                .expectNext("D")
+                .expectNext("UNKNOWING")
+                .expectComplete()
+                .verify();
     }
 
 }
