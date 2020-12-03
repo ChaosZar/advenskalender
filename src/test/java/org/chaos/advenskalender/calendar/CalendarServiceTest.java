@@ -6,12 +6,13 @@ import discord4j.discordjson.json.MessageData;
 import discord4j.rest.RestClient;
 import org.chaos.advenskalender.discord.Client;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.nio.file.Path;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -27,7 +28,8 @@ class CalendarServiceTest {
         when(messageData.id()).thenReturn("1");
         when(messageData.channelId()).thenReturn("5");
         var message = new Message(gateway, messageData);
-        when(client.sendFile(Mockito.any(Path.class))).thenReturn(Mono.just(message));
+        when(client.buildClient()).thenReturn(Mono.just(gateway));
+        when(client.sendFile(eq(gateway), any(Path.class))).thenReturn(Mono.just(message));
         when(client.addEmoji(message, Client.EMOJI_A)).thenReturn(Mono.just("s").then());
         when(client.addEmoji(message, Client.EMOJI_B)).thenReturn(Mono.just("s").then());
         when(client.addEmoji(message, Client.EMOJI_C)).thenReturn(Mono.just("s").then());
@@ -36,12 +38,7 @@ class CalendarServiceTest {
 
         var calendarService = new CalendarService(client, getClass().getResource("root").toURI());
 
-        StepVerifier.create(calendarService.getFluxes())
-                .expectNext("A")
-                .expectNext("B")
-                .expectNext("C")
-                .expectNext("D")
-                .expectNext("UNKNOWING")
+        StepVerifier.create(calendarService.postPages())
                 .expectNext("A")
                 .expectNext("B")
                 .expectNext("C")

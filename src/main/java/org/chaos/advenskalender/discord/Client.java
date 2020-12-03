@@ -40,31 +40,32 @@ public class Client {
 
     private Logger logger = LoggerFactory.getLogger(Client.class);
 
-    public Mono<Message> sendFile(Path path) {
-        logger.debug("send file {}", path);
-        return getTextChannel()
-                .flatMap(channel -> channel.createMessage(a -> createFileMessage(path, a)));
+    public Mono<Message> sendFile(GatewayDiscordClient discordClient, Path path) {
+        logger.info("send file {}", path);
+        return getTextChannel(discordClient)
+                .doOnError(Throwable::printStackTrace)
+                .flatMap(channel -> channel.createMessage(a -> createFileMessage(path, a)))
+                .doOnError(Throwable::printStackTrace);
     }
 
     public Mono<Void> addEmoji(Message message, String emoji){
         return message.addReaction(ReactionEmoji.unicode(emoji));
     }
-
+/*
     public Mono<Message> sendText(String message) {
-        logger.debug("send message {}", message);
+        logger.info("send message {}", message);
         return getTextChannel()
                 .flatMap(channel -> channel.createMessage(message));
     }
-
-    private Mono<TextChannel> getTextChannel() {
-        return buildClient()
-                .flatMap(client -> client.getChannelById(Snowflake.of(channelId)))
+*/
+    private Mono<TextChannel> getTextChannel(GatewayDiscordClient discordClient) {
+        return discordClient.getChannelById(Snowflake.of(channelId))
                 .map(TextChannel.class::cast);
     }
 
     private void createFileMessage(Path path, MessageCreateSpec a) {
         try {
-            logger.debug("send file {}", path);
+            logger.info("send file {}", path);
             InputStream fileInputStream = Files.newInputStream(path);
             String fileName = path.getFileName().toString();
             a.addFile(fileName, fileInputStream);
@@ -74,7 +75,7 @@ public class Client {
     }
 
 
-    private Mono<GatewayDiscordClient> buildClient() {
+    public Mono<GatewayDiscordClient> buildClient() {
         DiscordClient clientBuilder = DiscordClient.create(clientToken);
         return clientBuilder.login();
     }
