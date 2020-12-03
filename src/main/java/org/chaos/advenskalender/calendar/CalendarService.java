@@ -41,7 +41,6 @@ public class CalendarService {
                 .subscribe(
                         emoji -> logger.info("emoji {} was sent", emoji),
                         error -> logger.error("error sending page", error)
-
                 );
     }
 
