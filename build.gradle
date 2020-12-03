@@ -25,6 +25,7 @@ dependencies {
     testImplementation('org.springframework.boot:spring-boot-starter-test') {
         exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
     }
+    testImplementation 'io.projectreactor:reactor-test'
 
     implementation 'com.discord4j:discord4j-core:3.1.1'
 }
