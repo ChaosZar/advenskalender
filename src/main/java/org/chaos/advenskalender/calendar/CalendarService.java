@@ -4,9 +4,8 @@ import discord4j.core.GatewayDiscordClient;
 import discord4j.core.object.entity.Message;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.chaos.advenskalender.discord.Client;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
@@ -19,11 +18,10 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class CalendarService {
-
-    Logger logger = LoggerFactory.getLogger(CalendarService.class);
 
     private final Client client;
     private final CalendarProperties calendarProperties;
@@ -36,18 +34,18 @@ public class CalendarService {
 
     @Scheduled(cron = "0 0 10-20 * * *")
     public void postPagesScheduled() {
-        logger.info("cron job triggered.");
+        log.info("cron job triggered.");
 
         postPages()
                 .subscribe(
-                        emoji -> logger.info("emoji {} was sent", emoji),
-                        error -> logger.error("error sending page", error)
+                        emoji -> log.info("emoji {} was sent", emoji),
+                        error -> log.error("error sending page", error)
                 );
     }
 
     public Flux<String> postPages() {
         List<Day> daysToPost = getDaysToPost();
-        logger.info("Following Days will be send: {}", daysToPost);
+        log.info("Following Days will be send: {}", daysToPost);
         return client.buildGatewayDiscordClient()
                 .flatMapIterable(discordClient -> daysToPost.stream()
                         .flatMap(s -> s.getPages().stream())
@@ -57,16 +55,15 @@ public class CalendarService {
                 .doOnComplete(() -> book.deleteDays(daysToPost));
     }
 
-    private Flux<String> sendPage(GatewayDiscordClient discordClient,  Page page) {
-        logger.info("sending page {} to discord", page);
+    private Flux<String> sendPage(GatewayDiscordClient discordClient, Page page) {
         return client.sendFile(discordClient, page.getPath())
-                .doOnNext(message -> logger.info("file {}/{} was successfully sent", page.getPath().getParent().getFileName(), page.getPath().getFileName()))
+                .doOnNext(message -> log.info("file {} was successfully sent", page))
                 .filter(message -> page.isLastPage())
                 .flatMapMany(this::createEmojis);
     }
 
     private Flux<String> createEmojis(Message message) {
-        logger.info("creating emojis");
+        log.info("creating emojis");
         return Flux.concat(
                 client.addEmoji(message, Client.EMOJI_A).then(Mono.just("A")),
                 client.addEmoji(message, Client.EMOJI_B).then(Mono.just("B")),

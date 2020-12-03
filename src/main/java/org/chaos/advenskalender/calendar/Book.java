@@ -1,6 +1,7 @@
 package org.chaos.advenskalender.calendar;
 
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.net.URI;
@@ -8,9 +9,9 @@ import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Data
+@Slf4j
 public class Book {
 
     private final List<Day> days = new ArrayList<>();
@@ -83,9 +84,10 @@ public class Book {
                 .flatMap(s -> s.getPages().stream())
                 .forEach(path -> {
                     try {
+                        log.info("file will be deleted: {}", path);
                         Files.delete(path.getPath());
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        log.error("failed to delete file: {}", path, e);
                     }
                 });
         this.days.removeAll(days);
