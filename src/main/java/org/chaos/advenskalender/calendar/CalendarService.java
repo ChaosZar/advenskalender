@@ -4,13 +4,14 @@ import discord4j.core.object.entity.Message;
 import org.chaos.advenskalender.discord.Client;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
-import javax.annotation.PostConstruct;
+import java.net.URI;
+import java.net.URL;
 import java.time.LocalDateTime;
 import java.time.Month;
 import java.util.Comparator;
@@ -20,17 +21,14 @@ import java.util.stream.Collectors;
 @Service
 public class CalendarService {
 
-    @Value("${calendar.files.root}")
-    private String filesRoot;
-    private Book book;
     Logger logger = LoggerFactory.getLogger(CalendarService.class);
 
-    @Autowired
-    private Client client;
+    private final Client client;
+    private final Book book;
 
-    @PostConstruct
-    public void postConstruct() {
-        book = Book.build(filesRoot);
+    CalendarService(final Client client, @Value("${calendar.files.root}") URI filesRoot) {
+        this.client = client;
+        this.book = Book.build(filesRoot);
     }
 
     @Scheduled(cron = "0 0 * * * *")
@@ -50,25 +48,26 @@ public class CalendarService {
                 .flatMap(this::sendPage)
                 .doOnComplete(() -> book.deleteDays(daysToPost))
                 .subscribe(
-                        response -> logger.debug("emoji was sent"),
+                        emoji -> logger.debug("emoji {} was sent", emoji),
                         error -> logger.error("error sending page", error)
                 );
     }
 
-    private Flux<Void> sendPage(Page page) {
+    private Flux<String> sendPage(Page page) {
+        logger.debug("sending page {} to discord", page.getPath().getFileName());
         return client.sendFile(page.getPath())
-                .doOnNext(message -> logger.debug("file {} was successfully sent", page.getPath()))
+                .doOnNext(message -> logger.debug("file {} was successfully sent", page.getPath().getFileName()))
                 .filter(message -> page.isLastPage())
                 .flatMapMany(this::createEmojis);
     }
 
-    private Flux<Void> createEmojis(Message message) {
+    private Flux<String> createEmojis(Message message) {
         return Flux.concat(
-                client.addEmoji(message, Client.EMOJI_A),
-                client.addEmoji(message, Client.EMOJI_B),
-                client.addEmoji(message, Client.EMOJI_C),
-                client.addEmoji(message, Client.EMOJI_D),
-                client.addEmoji(message, Client.EMOJI_UNKNOWING)
+                client.addEmoji(message, Client.EMOJI_A).then(Mono.just("A")),
+                client.addEmoji(message, Client.EMOJI_B).then(Mono.just("B")),
+                client.addEmoji(message, Client.EMOJI_C).then(Mono.just("C")),
+                client.addEmoji(message, Client.EMOJI_D).then(Mono.just("D")),
+                client.addEmoji(message, Client.EMOJI_UNKNOWING).then(Mono.just("UNKNOWING"))
         );
     }
 

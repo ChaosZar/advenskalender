@@ -3,6 +3,7 @@ package org.chaos.advenskalender.calendar;
 import lombok.Data;
 
 import java.io.IOException;
+import java.net.URI;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
@@ -14,7 +15,7 @@ public class Book {
 
     private final List<Day> days = new ArrayList<>();
 
-    public static Book build(final String filesRoot) {
+    public static Book build(final URI filesRoot) {
 
         Book result = new Book();
 
@@ -54,7 +55,7 @@ public class Book {
     }
 
     private void onLoadingFinished() {
-        days.stream().forEach(d -> d.determineLastPage());
+        days.forEach(Day::determineLastPage);
     }
 
     private void addPage(Integer day, Path page) {
@@ -63,13 +64,14 @@ public class Book {
 
 
     private Day getDay(final int dayOfMonth) {
-        Optional<Day> day = days.stream().filter(d -> d.getDayOfMonth() == dayOfMonth).findFirst();
-        if (day.isEmpty()) {
-            Day newDay = new Day(dayOfMonth);
-            days.add(newDay);
-            return newDay;
-        }
-        return day.get();
+        return days.stream()
+                .filter(d -> d.getDayOfMonth() == dayOfMonth)
+                .findFirst()
+                .orElseGet(() -> {
+                    Day newDay = new Day(dayOfMonth);
+                    days.add(newDay);
+                    return newDay;
+                });
     }
 
     public List<Day> getDays() {
