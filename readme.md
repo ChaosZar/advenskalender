@@ -11,7 +11,6 @@ A CRON-Task is triggered every hour which checks what files should be posted.
 - night mode - between 20:00 and 10:00 nothing will be posted, to respect your friends.
 
 Missing:
-- tests (haha)
 - Metatdata which will be send in addition to the files.
 
 # Resource Format
