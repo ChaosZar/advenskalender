@@ -7,7 +7,6 @@ import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.channel.TextChannel;
 import discord4j.core.object.reaction.ReactionEmoji;
 import discord4j.core.spec.MessageCreateSpec;
-import org.assertj.core.api.Assertions;
 import org.chaos.advenskalender.calendar.CalendarProperties;
 import org.chaos.advenskalender.calendar.CalendarService;
 import org.chaos.advenskalender.discord.Client;
@@ -25,13 +24,11 @@ import reactor.test.StepVerifier;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -63,8 +60,7 @@ class AdvenskalenderApplicationTests {
         verify(MESSAGE_CREATE_SPEC, times(2)).addFile(nameCaptor.capture(), fileCaptor.capture());
 
         assertThat(nameCaptor.getAllValues()).isEqualTo(List.of("1.txt", "2.txt"));
-        assertThat(fileCaptor.getAllValues())
-                .map(this::readFileFromInputStream)
+        assertThat(fileCaptor.getAllValues().stream().map(this::readFileFromInputStream).collect(Collectors.toList()))
                 .isEqualTo(List.of("content aus 1", "content aus 2"));
     }
 
