@@ -51,7 +51,7 @@ public class CalendarService {
                         .flatMap(s -> s.getPages().stream())
                         .map(p -> new ClientPagePair(discordClient, p))
                         .collect(Collectors.toList()))
-                .flatMap(clientPagePair -> sendPage(clientPagePair.getDiscordClient(), clientPagePair.getPage()))
+                .flatMap(clientPagePair -> sendPage(clientPagePair.discordClient(), clientPagePair.page()))
                 .doOnComplete(() -> book.deleteDays(daysToPost));
     }
 
@@ -84,11 +84,7 @@ public class CalendarService {
                 .collect(Collectors.toList());
     }
 
-    @RequiredArgsConstructor
-    @Getter
-    private static class ClientPagePair {
-        private final GatewayDiscordClient discordClient;
-        private final Page page;
+    private static record ClientPagePair(GatewayDiscordClient discordClient, Page page) {
     }
 
 }
