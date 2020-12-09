@@ -2,7 +2,6 @@ package org.chaos.advenskalender.calendar;
 
 import discord4j.core.GatewayDiscordClient;
 import discord4j.core.object.entity.Message;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.chaos.advenskalender.discord.Client;

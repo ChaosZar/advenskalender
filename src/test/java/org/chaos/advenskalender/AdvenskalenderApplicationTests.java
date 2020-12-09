@@ -27,6 +27,7 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -63,9 +64,10 @@ class AdvenskalenderApplicationTests {
         verify(MESSAGE_CREATE_SPEC, times(2)).addFile(nameCaptor.capture(), fileCaptor.capture());
 
         assertThat(nameCaptor.getAllValues()).isEqualTo(List.of("1.txt", "2.txt"));
-        assertThat(fileCaptor.getAllValues())
+        List<String> fileContentList = fileCaptor.getAllValues().stream()
                 .map(this::readFileFromInputStream)
-                .isEqualTo(List.of("content aus 1", "content aus 2"));
+                .collect(Collectors.toList());
+        assertThat(fileContentList).isEqualTo(List.of("content aus 1", "content aus 2"));
     }
 
     private String readFileFromInputStream(InputStream inputStream) {
