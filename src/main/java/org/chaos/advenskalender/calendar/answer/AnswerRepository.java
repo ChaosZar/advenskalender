@@ -1,4 +1,4 @@
-package org.chaos.advenskalender.calendar;
+package org.chaos.advenskalender.calendar.answer;
 
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
@@ -12,6 +12,6 @@ public interface AnswerRepository extends CrudRepository<Answer, UUID> {
     List<Answer> findAllByUserId(Long userId);
 
     @Query("from answer a where a.answerTime >= from and a.answerTime <= to")
-    Answer findByUserIdAndDate(LocalDateTime from, LocalDateTime to);
+    Answer findByDate(LocalDateTime from);
 
 }

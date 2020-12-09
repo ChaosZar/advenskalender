@@ -1,4 +1,4 @@
-package org.chaos.advenskalender.calendar;
+package org.chaos.advenskalender.calendar.book;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;

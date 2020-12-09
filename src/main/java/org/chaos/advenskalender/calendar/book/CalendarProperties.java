@@ -1,4 +1,4 @@
-package org.chaos.advenskalender.calendar;
+package org.chaos.advenskalender.calendar.book;
 
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;

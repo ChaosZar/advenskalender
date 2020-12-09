@@ -1,4 +1,4 @@
-package org.chaos.advenskalender.calendar;
+package org.chaos.advenskalender.calendar.book;
 
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
@@ -10,5 +10,9 @@ public class BookEventPublisher {
 
     public BookEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
         this.applicationEventPublisher = applicationEventPublisher;
+    }
+
+    void publish(PrePostPagesEvent prePostPagesEvent){
+        applicationEventPublisher.publishEvent(prePostPagesEvent);
     }
 }

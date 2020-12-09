@@ -1,8 +1,7 @@
-package org.chaos.advenskalender.calendar;
+package org.chaos.advenskalender.calendar.book;
 
 import discord4j.core.GatewayDiscordClient;
 import discord4j.core.object.entity.Message;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.chaos.advenskalender.discord.Client;
@@ -23,6 +22,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class CalendarService {
 
+    private BookEventPublisher bookEventPublisher;
     private final Client client;
     private final CalendarProperties calendarProperties;
     private Book book;
@@ -35,7 +35,7 @@ public class CalendarService {
     @Scheduled(cron = "0 0 10-20 * * *")
     public void postPagesScheduled() {
         log.info("cron job triggered.");
-
+        bookEventPublisher.publish(new PrePostPagesEvent(this));
         postPages()
                 .subscribe(
                         emoji -> log.info("emoji {} was sent", emoji),

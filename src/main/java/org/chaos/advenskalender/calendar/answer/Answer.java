@@ -1,4 +1,4 @@
-package org.chaos.advenskalender.calendar;
+package org.chaos.advenskalender.calendar.answer;
 
 import lombok.Data;
 
@@ -24,4 +24,12 @@ public class Answer {
     @Column
     private String answer;
 
+    public Answer() {
+    }
+
+    public Answer(Long userId, LocalDateTime answerTime, String answer) {
+        this.userId = userId;
+        this.answerTime = answerTime;
+        this.answer = answer;
+    }
 }
