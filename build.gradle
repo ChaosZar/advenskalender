@@ -31,14 +31,24 @@ repositories {
 }
 
 dependencies {
+    //dev
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-    compileOnly 'org.projectlombok:lombok'
-    annotationProcessor 'org.projectlombok:lombok'
+    implementation 'com.discord4j:discord4j-core:3.1.1'
+
+
+    //test
     testImplementation('org.springframework.boot:spring-boot-starter-test')
     testImplementation 'io.projectreactor:reactor-test'
 
-    implementation 'com.discord4j:discord4j-core:3.1.1'
+    //build
+    annotationProcessor 'org.projectlombok:lombok'
+    compileOnly 'org.projectlombok:lombok'
+
+    //run
+    runtimeOnly 'com.h2database:h2'
+
+
 }
 
 test {

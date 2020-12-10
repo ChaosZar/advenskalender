@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class CalendarService {
 
-    private BookEventPublisher bookEventPublisher;
+    private final BookEventPublisher bookEventPublisher;
     private final Client client;
     private final CalendarProperties calendarProperties;
     private Book book;
@@ -35,7 +35,6 @@ public class CalendarService {
     @Scheduled(cron = "0 0 10-20 * * *")
     public void postPagesScheduled() {
         log.info("cron job triggered.");
-        bookEventPublisher.publish(new PrePostPagesEvent(this));
         postPages()
                 .subscribe(
                         emoji -> log.info("emoji {} was sent", emoji),
@@ -52,7 +51,11 @@ public class CalendarService {
                         .map(p -> new ClientPagePair(discordClient, p))
                         .collect(Collectors.toList()))
                 .flatMap(clientPagePair -> sendPage(clientPagePair.discordClient(), clientPagePair.page()))
-                .doOnComplete(() -> book.deleteDays(daysToPost));
+                .doOnComplete(() -> {
+                    if(!daysToPost.isEmpty())
+                    bookEventPublisher.publish(new PostPagesEvent(this));
+                    book.deleteDays(daysToPost);
+                });
     }
 
     private Flux<String> sendPage(GatewayDiscordClient discordClient, Page page) {

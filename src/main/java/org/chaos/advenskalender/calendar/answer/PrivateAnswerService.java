@@ -3,10 +3,11 @@ package org.chaos.advenskalender.calendar.answer;
 import discord4j.core.GatewayDiscordClient;
 import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.entity.Message;
+import discord4j.core.object.entity.User;
 import discord4j.core.object.entity.channel.Channel;
 import discord4j.core.object.entity.channel.MessageChannel;
 import lombok.extern.slf4j.Slf4j;
-import org.chaos.advenskalender.calendar.book.PrePostPagesEvent;
+import org.chaos.advenskalender.calendar.book.PostPagesEvent;
 import org.chaos.advenskalender.discord.Client;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
@@ -14,6 +15,8 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -35,30 +38,48 @@ public class PrivateAnswerService {
     private void onNewMessage(MessageCreateEvent e) {
         Message message = e.getMessage();
         MessageChannel channel = message.getChannel().block();
-        if (channel.getType() != Channel.Type.DM) {
+        User member = message.getAuthor().get();
+
+        if (isRestrictedMessage(channel, member)) {
             return;
         }
+        log.info("new message received: {}", e);
 
-        Long memberId = message.getAuthorAsMember().block().getId().asLong();
-
-        saveAnswer(message, memberId);
-
-
+        saveAnswer(message, member);
     }
 
-    private void saveAnswer(Message message, Long memberId) {
-//        LocalDateTime now = LocalDateTime.now();
-//        LocalDateTime.now()
-//        answerRepository.findAnswerByUserAndDate(memberId, );
-//
-//
-//        Answer answer = new Answer(memberId, now, message.getContent());
-//        answerRepository.save(answer);
+    private boolean isRestrictedMessage(MessageChannel channel, User author) {
+        return channel.getType() != Channel.Type.DM || author.isBot();
+    }
+
+    private void saveAnswer(Message message, User member) {
+        log.debug("searching for entity with member id {}", member.getId());
+        Answer answer = answerRepository.findByUserId(member.getId().asLong());
+
+        if (answer == null) {
+            log.info("No entity for member found. creating new one.");
+            answer = new Answer(member);
+        }
+        answer.setAnswer(message.getContent());
+        log.info("new answer will be saved for member {}", member);
+        answerRepository.save(answer);
+
+        member.getPrivateChannel().subscribe(c -> c.createMessage("answer received").subscribe());
+        discordClient.sendText(member.getUsername() + " submitted an answer.");
     }
 
     @EventListener
-    void onPrePostPages(PrePostPagesEvent prePostPagesEvent){
-        LocalDateTime creationDate = prePostPagesEvent.getCreationDate();
-        answerRepository.findByDate(creationDate.minusDays(1));
+    void onPostPages(PostPagesEvent postPagesEvent) {
+        log.debug("pre Post Pages Event received");
+        LocalDateTime creationDate = postPagesEvent.getCreationDate();
+        List<Answer> allAnswers = answerRepository.findAllByDateFrom(creationDate.minusDays(1));
+        log.debug("answers found: {}", allAnswers);
+        if (allAnswers.isEmpty()) {
+            return;
+        }
+        String allAnswersAsString = allAnswers.stream().map(
+                a -> a.getUserName() + " answers: " + a.getAnswer()
+        ).collect(Collectors.joining("\r\n"));
+        discordClient.sendText("Answers from Yesterday:\r\n"+allAnswersAsString);
     }
 }

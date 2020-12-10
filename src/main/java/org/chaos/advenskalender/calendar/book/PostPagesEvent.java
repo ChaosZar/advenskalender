@@ -6,9 +6,9 @@ import org.springframework.context.ApplicationEvent;
 import java.time.LocalDateTime;
 
 @Getter
-public class PrePostPagesEvent extends ApplicationEvent {
+public class PostPagesEvent extends ApplicationEvent {
 
-    private LocalDateTime creationDate;
+    private final LocalDateTime creationDate = LocalDateTime.now();
 
     /**
      * Create a new {@code ApplicationEvent}.
@@ -16,7 +16,7 @@ public class PrePostPagesEvent extends ApplicationEvent {
      * @param source the object on which the event initially occurred or with
      *               which the event is associated (never {@code null})
      */
-    public PrePostPagesEvent(Object source) {
+    public PostPagesEvent(Object source) {
         super(source);
     }
 }

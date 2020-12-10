@@ -65,5 +65,15 @@ public class Client {
     public Mono<GatewayDiscordClient> buildGatewayDiscordClient() {
         return clientBuilder.login();
     }
+
+    public void sendText(String text) {
+        log.info("Text will be send:\n{}", text);
+        buildGatewayDiscordClient()
+                .subscribe(
+                        a -> getTextChannel(a)
+                                .subscribe(c -> c.createMessage(text).subscribe()
+                        )
+                );
+    }
 }
 

@@ -9,9 +9,9 @@ import java.util.UUID;
 
 public interface AnswerRepository extends CrudRepository<Answer, UUID> {
 
-    List<Answer> findAllByUserId(Long userId);
+    Answer findByUserId(Long userId);
 
-    @Query("from answer a where a.answerTime >= from and a.answerTime <= to")
-    Answer findByDate(LocalDateTime from);
+    @Query("from answer a where a.answerTime >= ?1")
+    List<Answer> findAllByDateFrom(LocalDateTime from);
 
 }

@@ -12,7 +12,7 @@ public class BookEventPublisher {
         this.applicationEventPublisher = applicationEventPublisher;
     }
 
-    void publish(PrePostPagesEvent prePostPagesEvent){
-        applicationEventPublisher.publishEvent(prePostPagesEvent);
+    void publish(PostPagesEvent postPagesEvent){
+        applicationEventPublisher.publishEvent(postPagesEvent);
     }
 }

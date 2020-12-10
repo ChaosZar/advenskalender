@@ -1,10 +1,9 @@
 package org.chaos.advenskalender.calendar.answer;
 
+import discord4j.core.object.entity.User;
 import lombok.Data;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
+import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -13,10 +12,14 @@ import java.util.UUID;
 public class Answer {
 
     @Id
+    @GeneratedValue(strategy=GenerationType.AUTO)
     private UUID id;
 
-    @Column
+    @Column(unique = true)
     private Long userId;
+
+    @Column
+    private String userName;
 
     @Column
     private LocalDateTime answerTime;
@@ -27,9 +30,13 @@ public class Answer {
     public Answer() {
     }
 
-    public Answer(Long userId, LocalDateTime answerTime, String answer) {
-        this.userId = userId;
-        this.answerTime = answerTime;
-        this.answer = answer;
+    public Answer(User user) {
+        this.userId = user.getId().asLong();
+        this.userName = user.getUsername();
+    }
+
+    @PrePersist
+    void prePersist(){
+        answerTime = LocalDateTime.now();
     }
 }
