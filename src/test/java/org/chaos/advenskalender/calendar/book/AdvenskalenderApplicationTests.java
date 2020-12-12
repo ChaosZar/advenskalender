@@ -1,4 +1,4 @@
-package org.chaos.advenskalender;
+package org.chaos.advenskalender.calendar.book;
 
 import discord4j.common.util.Snowflake;
 import discord4j.core.DiscordClient;
@@ -7,8 +7,6 @@ import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.channel.TextChannel;
 import discord4j.core.object.reaction.ReactionEmoji;
 import discord4j.core.spec.MessageCreateSpec;
-import org.chaos.advenskalender.calendar.book.CalendarProperties;
-import org.chaos.advenskalender.calendar.book.CalendarService;
 import org.chaos.advenskalender.discord.Client;
 import org.chaos.advenskalender.discord.DiscordProperties;
 import org.junit.jupiter.api.Test;
@@ -29,13 +27,10 @@ import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @SpringBootTest
-@Import({CalendarService.class, Client.class, DiscordProperties.class})
+@Import({CalendarService.class, Client.class, DiscordProperties.class, BookEventPublisher.class})
 class AdvenskalenderApplicationTests {
 
     private static final MessageCreateSpec MESSAGE_CREATE_SPEC = mock(MessageCreateSpec.class);
@@ -78,7 +73,7 @@ class AdvenskalenderApplicationTests {
         @Bean
         CalendarProperties calendarProperties() throws Exception {
             var calendarProperties = mock(CalendarProperties.class);
-            when(calendarProperties.getFilesRoot()).thenReturn(getClass().getResource("calendar/root").toURI());
+            when(calendarProperties.getFilesRoot()).thenReturn(getClass().getResource("root").toURI());
             return calendarProperties;
         }
 

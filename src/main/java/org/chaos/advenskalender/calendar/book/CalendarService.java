@@ -50,12 +50,24 @@ public class CalendarService {
                         .flatMap(s -> s.getPages().stream())
                         .map(p -> new ClientPagePair(discordClient, p))
                         .collect(Collectors.toList()))
+                .doFirst(() -> publichPrePostEvent(daysToPost))
                 .flatMap(clientPagePair -> sendPage(clientPagePair.discordClient(), clientPagePair.page()))
                 .doOnComplete(() -> {
-                    if(!daysToPost.isEmpty())
-                    bookEventPublisher.publish(new PostPagesEvent(this));
+                    publishPostPostEvent(daysToPost);
                     book.deleteDays(daysToPost);
                 });
+    }
+
+    private void publichPrePostEvent(List<Day> daysToPost) {
+        if (!daysToPost.isEmpty()) {
+            bookEventPublisher.publish(new PostPostPagesEvent(this));
+        }
+    }
+
+    private void publishPostPostEvent(List<Day> daysToPost) {
+        if (!daysToPost.isEmpty()) {
+            bookEventPublisher.publish(new PostPostPagesEvent(this));
+        }
     }
 
     private Flux<String> sendPage(GatewayDiscordClient discordClient, Page page) {

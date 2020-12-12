@@ -7,7 +7,8 @@ import discord4j.core.object.entity.User;
 import discord4j.core.object.entity.channel.Channel;
 import discord4j.core.object.entity.channel.MessageChannel;
 import lombok.extern.slf4j.Slf4j;
-import org.chaos.advenskalender.calendar.book.PostPagesEvent;
+import org.chaos.advenskalender.calendar.book.PostPostPagesEvent;
+import org.chaos.advenskalender.calendar.book.PrePostPagesEvent;
 import org.chaos.advenskalender.discord.Client;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
@@ -35,7 +36,7 @@ public class PrivateAnswerService {
 
     }
 
-    private void onNewMessage(MessageCreateEvent e) {
+    public void onNewMessage(MessageCreateEvent e) {
         Message message = e.getMessage();
         MessageChannel channel = message.getChannel().block();
         User member = message.getAuthor().get();
@@ -69,9 +70,9 @@ public class PrivateAnswerService {
     }
 
     @EventListener
-    void onPostPages(PostPagesEvent postPagesEvent) {
+    void onPostPages(PrePostPagesEvent postPostPagesEvent) {
         log.debug("pre Post Pages Event received");
-        LocalDateTime creationDate = postPagesEvent.getCreationDate();
+        LocalDateTime creationDate = postPostPagesEvent.getCreationDate();
         List<Answer> allAnswers = answerRepository.findAllByDateFrom(creationDate.minusDays(1));
         log.debug("answers found: {}", allAnswers);
         if (allAnswers.isEmpty()) {
@@ -80,6 +81,6 @@ public class PrivateAnswerService {
         String allAnswersAsString = allAnswers.stream().map(
                 a -> a.getUserName() + " answers: " + a.getAnswer()
         ).collect(Collectors.joining("\r\n"));
-        discordClient.sendText("Answers from Yesterday:\r\n"+allAnswersAsString);
+        discordClient.sendText("Answers from Yesterday:\r\n" + allAnswersAsString);
     }
 }
