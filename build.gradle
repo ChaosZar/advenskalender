@@ -1,6 +1,7 @@
 plugins {
     id 'org.springframework.boot' version '2.3.4.RELEASE'
     id 'io.spring.dependency-management' version '1.0.10.RELEASE'
+    id 'org.hidetake.ssh' version '2.10.1'
     id 'java'
 }
 
@@ -52,4 +53,26 @@ dependencies {
 
 test {
     useJUnitPlatform()
+}
+
+
+remotes {
+    webServer {
+        host = project.properties["ssh-host"]
+        user = 'adventskalender'
+        identity = file(project.properties["ssh-private-key"])
+    }
+}
+
+task deploy {
+    dependsOn bootJar
+    doLast {
+        ssh.run {
+            session(remotes.webServer) {
+                execute 'systemctl --user stop adventskalender'
+                put from: "${projectDir}/build/libs/advenskalender-${version}.jar", into: '/home/adventskalender/app/advenskalender.jar'
+                execute 'systemctl --user start adventskalender'
+            }
+        }
+    }
 }
